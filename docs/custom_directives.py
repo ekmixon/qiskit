@@ -107,9 +107,12 @@ class GalleryItemDirective(Directive):
                 sphinx_gallery.gen_rst.scale_image(figname, save_figname,
                                                    400, 280)
                 # replace figure in rst with simple regex
-                thumbnail_rst = re.sub(r'..\sfigure::\s.*\.png',
-                                       '.. figure:: /{}'.format(save_figname),
-                                       thumbnail_rst)
+                thumbnail_rst = re.sub(
+                    r'..\sfigure::\s.*\.png',
+                    f'.. figure:: /{save_figname}',
+                    thumbnail_rst,
+                )
+
 
             thumbnail = StringList(thumbnail_rst.split('\n'))
             thumb = nodes.paragraph()
@@ -197,8 +200,6 @@ class CustomGalleryItemDirective(Directive):
         except ValueError as e:
             print(e)
             raise
-            return []
-
         thumbnail_rst = GALLERY_TEMPLATE.format(tooltip=tooltip,
                                                 thumbnail=thumbnail,
                                                 description=description)
@@ -227,29 +228,19 @@ class CustomCardItemDirective(Directive):
             else:
                 image = '_static/img/thumbnails/default.png'
 
-            if 'link' in self.options:
-                link = self.options['link']
-            else:
-                link = ''
-
+            link = self.options['link'] if 'link' in self.options else ''
             if 'card_description' in self.options:
                 card_description = self.options['card_description']
             else:
                 card_description = ''
 
-            if 'tags' in self.options:
-                tags = self.options['tags']
-            else:
-                tags = ''
-
+            tags = self.options['tags'] if 'tags' in self.options else ''
         except FileNotFoundError as e:
             print(e)
             return []
         except ValueError as e:
             print(e)
             raise
-            return []
-
         card_rst = CARD_TEMPLATE.format(header=header,
                                         image=image,
                                         link=link,
@@ -321,8 +312,6 @@ class CustomCalloutItemDirective(Directive):
         except ValueError as e:
             print(e)
             raise
-            return []
-
         callout_rst = CALLOUT_TEMPLATE.format(description=description,
                                               header=header,
                                               button_link=button_link,

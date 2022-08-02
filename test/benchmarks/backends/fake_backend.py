@@ -52,46 +52,48 @@ class FakeBackend(BaseBackend):
                         "date": "2000-01-01 00:00:00Z",
                         "name": "T1",
                         "unit": "\u00b5s",
-                        "value": 0.0
+                        "value": 0.0,
                     },
                     {
                         "date": "2000-01-01 00:00:00Z",
                         "name": "T2",
                         "unit": "\u00b5s",
-                        "value": 0.0
+                        "value": 0.0,
                     },
                     {
                         "date": "2000-01-01 00:00:00Z",
                         "name": "frequency",
                         "unit": "GHz",
-                        "value": 0.0
+                        "value": 0.0,
                     },
                     {
                         "date": "2000-01-01 00:00:00Z",
                         "name": "readout_error",
                         "unit": "",
-                        "value": 0.0
-                    }
-                ] for _ in range(len(unique_qubits))
-            ],
-            'gates': [{
-                "gate": "cx",
-                "name": "CX" + str(pair[0]) + "_" + str(pair[1]),
-                "parameters": [
-                    {
-                        "date": "2000-01-01 00:00:00Z",
-                        "name": "gate_error",
-                        "unit": "",
-                        "value": 0.0
-                    }
-                ],
-                "qubits": [
-                    pair[0],
-                    pair[1]
+                        "value": 0.0,
+                    },
                 ]
-            } for pair in coupling_map],
-            'general': []
+                for _ in range(len(unique_qubits))
+            ],
+            'gates': [
+                {
+                    "gate": "cx",
+                    "name": f"CX{str(pair[0])}_{str(pair[1])}",
+                    "parameters": [
+                        {
+                            "date": "2000-01-01 00:00:00Z",
+                            "name": "gate_error",
+                            "unit": "",
+                            "value": 0.0,
+                        }
+                    ],
+                    "qubits": [pair[0], pair[1]],
+                }
+                for pair in coupling_map
+            ],
+            'general': [],
         }
+
 
         return BackendProperties.from_dict(properties)
 

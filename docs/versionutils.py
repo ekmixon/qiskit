@@ -66,7 +66,7 @@ def _get_current_translation(config):
 
 
 def _get_translation_url(config, code, pagename):
-    base = '/locale/%s' % code if code and code != default_language else ''
+    base = f'/locale/{code}' if code and code != default_language else ''
     return _get_url(config, base, pagename)
 
 
@@ -75,7 +75,7 @@ def _get_version_label(config):
         ['git', 'describe', '--exact-match', '--tags', 'HEAD'],
         encoding='utf8', capture_output=True)
     if proc.returncode != 0:
-        return '%s' % (_get_current_translation(config) or config.language,)
+        return f'{_get_current_translation(config) or config.language}'
     else:
         return proc.stdout
 
@@ -89,26 +89,25 @@ def _get_version_list():
     current_version_info = current_version.split('.')
     if current_version_info[0] == '0':
         version_list = [
-            '0.%s' % x for x in range(start_version[1],
-                                      int(current_version_info[1]) + 1)]
+            f'0.{x}'
+            for x in range(start_version[1], int(current_version_info[1]) + 1)
+        ]
+
     else:
         #TODO: When 1.0.0 add code to handle 0.x version list
         version_list = []
-        pass
     # Prepend version 0.19 which was built and uploaded manually:
     version_list.insert(0, '0.19')
     return version_list
 
 
 def _get_url(config, base, pagename):
-    return _add_content_prefix(config, '%s/%s.html' % (base, pagename))
+    return _add_content_prefix(config, f'{base}/{pagename}.html')
 
 
 def _add_content_prefix(config, url):
-    prefix = ''
-    if config.content_prefix:
-        prefix = '/%s' % config.content_prefix
-    return '%s%s' % (prefix, url)
+    prefix = f'/{config.content_prefix}' if config.content_prefix else ''
+    return f'{prefix}{url}'
 
 
 class _VersionHistory(Table):
@@ -119,7 +118,7 @@ class _VersionHistory(Table):
     repo_root = os.path.abspath(os.path.dirname(__file__))
 
     def _get_setup_py(self, version, git_dir):
-        cmd = ['git', 'show', '%s:setup.py' % version]
+        cmd = ['git', 'show', f'{version}:setup.py']
         proc = subprocess.Popen(cmd, stdout=subprocess.PIPE,
                                 stderr=subprocess.PIPE,
                                 cwd=git_dir)
@@ -145,16 +144,14 @@ class _VersionHistory(Table):
     def get_versions(self, tags, git_dir):
         versions = {}
         for tag in tags:
-            version = {}
             setup_py = self._get_setup_py(tag, git_dir)
-            version['Release Date'] = self._get_date(tag, git_dir)
+            version = {'Release Date': self._get_date(tag, git_dir)}
             for package in self.headers[1:] + ['qiskit_terra']:
                 version_regex = re.compile(package + '[=|>]=(.*)\"')
-                match = version_regex.search(setup_py)
-                if match:
+                if match := version_regex.search(setup_py):
                     ver = match[1]
-                    if '<' in match[1]:
-                        ver = '>=' + ver
+                    if '<' in ver:
+                        ver = f'>={ver}'
                     if package != 'qiskit_terra':
                         version[package] = ver
                     else:
@@ -170,9 +167,10 @@ class _VersionHistory(Table):
         table += tgroup
         self.options['widths'] = [30, 15, 15, 15, 20, 15]
         tgroup.extend(
-            nodes.colspec(colwidth=col_width, colname='c' + str(idx))
+            nodes.colspec(colwidth=col_width, colname=f'c{str(idx)}')
             for idx, col_width in enumerate(self.col_widths)
         )
+
 
         thead = nodes.thead()
         tgroup += thead
@@ -221,13 +219,11 @@ def _get_qiskit_metapackage_git_tags(tmp_dir):
     proc = subprocess.Popen(cmd, stdout=subprocess.PIPE,
                             stderr=subprocess.PIPE, cwd=tmp_dir)
     stdout, stderr = proc.communicate()
-    if proc.returncode > 0:
-        logger.warn("%s failed with:\nstdout:\n%s\nstderr:\n%s\n"
-                    % (cmd, stdout, stderr))
-        return []
-    else:
-
+    if proc.returncode <= 0:
         return _get_git_tags(os.path.join(tmp_dir, 'qiskit'))
+    logger.warn("%s failed with:\nstdout:\n%s\nstderr:\n%s\n"
+                % (cmd, stdout, stderr))
+    return []
 
 
 def _get_git_tags(git_dir):
